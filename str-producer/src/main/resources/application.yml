@@ -1,3 +1,10 @@
 server:
-  port: 9090
-spring.application.name=str-producer
+  port: 8000
+
+spring:
+  application:
+    name: str-producer
+
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092

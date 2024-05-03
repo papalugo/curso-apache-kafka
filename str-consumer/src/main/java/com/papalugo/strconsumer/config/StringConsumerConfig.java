@@ -2,6 +2,7 @@ package com.papalugo.strconsumer.config;
 
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -10,9 +11,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.RecordInterceptor;
 
 import java.util.HashMap;
 
+@Log4j2
 @RequiredArgsConstructor
 @Configuration
 public class StringConsumerConfig {
@@ -31,10 +34,32 @@ public class StringConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> stringContainerFactory(ConsumerFactory<String, String> consumerFactory) {
+    public ConcurrentKafkaListenerContainerFactory<String, String> stringContainerFactory(
+            ConsumerFactory<String, String> consumerFactory
+    ) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, String>();
 
         factory.setConsumerFactory(consumerFactory);
         return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> validateMessageContainerFactory(
+            ConsumerFactory<String, String> consumerFactory
+    ) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, String>();
+
+        factory.setConsumerFactory(consumerFactory);
+        factory.setRecordInterceptor(validateMessage());
+        return factory;
+    }
+
+    private RecordInterceptor<String, String> validateMessage() {
+        return (record, consumer) -> {
+            if (record.value().contains("Test")) {
+                log.info("Record have Test work!");
+            }
+            return record;
+        };
     }
 }
